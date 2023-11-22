@@ -27,19 +27,7 @@ Variables del dataset:
 
 *p (mbar):* presión del aire en milibars  
 *T (degC):* temperatura del aire en °C  
-*Tpot (K):* temperatura potencial  
-*Tdew (degC):* temperatura de punto de rocío (a la cual el vapor de agua se condensa)  
-*rh (%):* humedad relativa  
-*VPmax (mbar):* presión de vapor de agua de saturación  
-*VPact (mbar):* presión de vapor de agua real  
-*VPdef (mbar):* déficit de presión de vapor de agua  
-*sh (g/kg):* humedad específica  
-*H2OC (mmol/mol):* nivel de concentración del vapor de agua  
-*rho (g/m**3):* densidad del aire  
-*wv (m/s):* velocidad del viento  
-*max. wv (m/s):* velocidad del viento máxima  
-*wd (deg):* dirección del viento  
-*SWDR (W/m²):* Environmental variables-global radiation  
+
 
 La variable a predecir: que es simplemente la variable que queremos pronosticar y que será la salida de cada uno de los modelos LSTM. En este caso esta variable a predecir es la temperatura (columna T (degC) de nuestro dataset).
 
@@ -80,11 +68,35 @@ from tensorflow.keras.optimizers import RMSprop, Adam
 import tensorflow as tf
 
 """Carga de datos"""
+# Mount data from drive
+from google.colab import drive
+import os
+import requests
+drive.mount('/content/drive')
+import pandas as pd
 
-url='https://raw.githubusercontent.com/braiandrago/AST/main/temp_preprocesado.csv'
-df_preprocesado = pd.read_csv(url, index_col=0)
-print(df_preprocesado.shape)
-df_preprocesado.head()
+#Conexión Fede
+df_guardia = pd.read_excel("/content/drive/My Drive/Analisis Series Temporales/TP1/serie_guardia.xlsx")
+df_laboratorio = pd.read_excel("/content/drive/My Drive/Analisis Series Temporales/TP1/serie_laboratorio.xlsx")
+df_laboratorio = df_laboratorio.drop(['Atenciones', 'Pacientes'], axis=1)
+df_internaciones = pd.read_excel("/content/drive/My Drive/Analisis Series Temporales/TP1/serie_ingresos_internacion.xlsx")
+
+#crea copias para uso en caso de diferenciar
+df_guardia.set_index('Fecha', inplace=True)
+df_guardia.index.freq = 'D'
+df_laboratorio.set_index('Fecha', inplace=True)
+df_laboratorio.index.freq = 'D'
+df_internaciones.set_index('Fecha', inplace=True)
+df_internaciones.index.freq = 'D'
+
+df_guardia=df_guardia['2022-01-01':]
+df_laboratorio=df_laboratorio['2022-01-01':]
+df_internaciones=df_internaciones['2022-01-01':]
+
+df_guardia.head()
+df_laboratorio.head()
+df_internaciones.head()
+
 
 """En la carga del dataset ya asignamos a la primer columna como index (deja de ser considerada como variable el tiempo para las predicciones). Pero la eliminamos para alivianar la parte gráfica"""
 
