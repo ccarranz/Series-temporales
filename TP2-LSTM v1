@@ -77,6 +77,7 @@ df_laboratorio = df_laboratorio.drop(['Atenciones', 'Pacientes'], axis=1)
 df_internaciones = pd.read_excel("/content/drive/My Drive/Analisis Series Temporales/TP1/serie_ingresos_internacion.xlsx")
 
 #crea copias para uso en caso de diferenciar
+#En la carga del dataset ya asignamos a la primer columna como index 
 df_guardia.set_index('Fecha', inplace=True)
 df_guardia.index.freq = 'D'
 df_laboratorio.set_index('Fecha', inplace=True)
@@ -101,33 +102,33 @@ print(summary_guardia)
 print(summary_lab)
 print(summary_int)
 
-"""En la carga del dataset ya asignamos a la primer columna como index (deja de ser considerada como variable el tiempo para las predicciones). Pero la eliminamos para alivianar la parte gráfica"""
-
-df_preprocesado = df_preprocesado.reset_index()
-df_preprocesado = df_preprocesado.drop(columns=['datetime'])
-df_preprocesado
+#df_guardia.head()
+#df_laboratorio.head()
+#df_internaciones.head()
+#df_preprocesado = df_preprocesado.reset_index()
+#df_preprocesado = df_preprocesado.drop(columns=['datetime'])
+#df_preprocesado
 
 """comentario 1- Analizar si conveniente realizar ingeniería de variables y llevarlo adelante para alimentar el modelo.
 
 **Feature Engineering**
 
-Procesamos y modificamos algunas variables para generar nuevas características que alimenten el modelo. En este caso generamos las componentes de velocidad del viento.
 """
 
 # Feature engineering
-w_dir = df_preprocesado['wd (deg)']*np.pi/180 #pase a radianes
-Wx = df_preprocesado['wv (m/s)']*np.cos(w_dir) #calculo de componente en x
-Wy = df_preprocesado['wv (m/s)']*np.sin(w_dir) #calculo de componentes en y
+#w_dir = df_preprocesado['wd (deg)']*np.pi/180 #pase a radianes
+#Wx = df_preprocesado['wv (m/s)']*np.cos(w_dir) #calculo de componente en x
+#Wy = df_preprocesado['wv (m/s)']*np.sin(w_dir) #calculo de componentes en y
 
 # Eliminar columnas irrelevantes
-df_preprocesado.pop('wd (deg)')
-df_preprocesado.pop('wv (m/s)')
-df_preprocesado.pop('max. wv (m/s)') #pues resulta redundante, teniendo en cuenta que existe la covariable wv (m/s)
+#df_preprocesado.pop('wd (deg)')
+#df_preprocesado.pop('wv (m/s)')
+#df_preprocesado.pop('max. wv (m/s)') #pues resulta redundante, teniendo en cuenta que existe la covariable wv (m/s)
 
 # E incluir las columnas de interés
-df_preprocesado['Wx'] = Wx
-df_preprocesado['Wy'] = Wy
-df_preprocesado
+#df_preprocesado['Wx'] = Wx
+#df_preprocesado['Wy'] = Wy
+#df_preprocesado
 
 """# Procesamiento del dataset
 
@@ -154,7 +155,11 @@ def train_val_test_split(dataframe, tr_size=0.8, vl_size=0.1, ts_size=0.1 ):
     return train, val, test
 
 # Prueba de la función
-tr, vl, ts = train_val_test_split(df_preprocesado)
+#tr, vl, ts = train_val_test_split(df_preprocesado)
+
+tr, vl, ts = train_val_test_split(df_guardia)
+tr, vl, ts = train_val_test_split(df_laboratorio)
+tr, vl, ts = train_val_test_split(df_internaciones)
 
 print(f'Tamaño set de entrenamiento: {tr.shape}')
 print(f'Tamaño set de validación: {vl.shape}')
@@ -163,7 +168,10 @@ print(f'Tamaño set de prueba: {ts.shape}')
 """**Gráfica representativa del split para una feature**"""
 
 covar = 1 # Índice de la covariable (columna del dataset) a graficar
-col = df_preprocesado.columns[covar]
+#col = df_preprocesado.columns[covar]
+col = df_guardia.columns[covar]
+col = df_laboratorio.columns[covar]
+col = df_internaciones.columns[covar]
 
 # Dibujar los sets de entrenamiento/validación/prueba para la covariable
 fig, ax = plt.subplots(figsize = (16,5))
@@ -266,7 +274,10 @@ def escalar_dataset(data_input, col_ref):
 
     # *** Implementación adicional: determinar el índice de la columna
     # que contiene la variable a predecir
-    col_ref = df_preprocesado.columns.get_loc(col_ref) #nuestra columna de referencia, para el escalamiento inverso que se hace después
+    #col_ref = df_preprocesado.columns.get_loc(col_ref) #nuestra columna de referencia, para el escalamiento inverso que se hace después
+     col_ref = df_guardia.columns.get_loc(col_ref) #nuestra columna de referencia, para el escalamiento inverso que se hace después
+     col_ref = df_laboratorio.columns.get_loc(col_ref) #nuestra columna de referencia, para el escalamiento inverso que se hace después
+     col_ref = df_internaciones.columns.get_loc(col_ref) #nuestra columna de referencia, para el escalamiento inverso que se hace después
 
     # Número de instantes de tiempo de entrada y de covariables
     NSAMPLES = data_input['x_tr'].shape[1]
@@ -337,7 +348,10 @@ for i in range(20):
 
 # Etiquetas eje horizontal
 ax.set_xticks(list(range(20)))
-ax.set_xticklabels(df_preprocesado.keys(), rotation=90)
+#ax.set_xticklabels(df_preprocesado.keys(), rotation=90)
+ax.set_xticklabels(df_guardia.keys(), rotation=90)
+ax.set_xticklabels(df_laboratorio.keys(), rotation=90)
+ax.set_xticklabels(df_internaciones.keys(), rotation=90)
 ax.autoscale();
 
 """# Creación y entrenamiento de la Red LSTM
